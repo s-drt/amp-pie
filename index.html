@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Situs dalam Pemeliharaan</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Font dari Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* Gaya kustom untuk seluruh halaman */
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden; /* Mencegah scrollbar muncul */
+            cursor: none; /* Menyembunyikan kursor mouse */
+            /* Mencegah pemilihan teks */
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Sintaks standar */
+        }
+        
+        /* Kanvas untuk animasi latar belakang */
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Meletakkan kanvas di belakang konten */
+        }
+        
+        /* Efek cahaya neon untuk teks utama */
+        .neon-text-pink {
+            animation: flicker-pink 2s infinite alternate; /* Animasi kelap-kelip */
+            text-shadow:
+                0 0 7px #ec4899,
+                0 0 10px #ec4899,
+                0 0 21px #ec4899,
+                0 0 42px #be185d,
+                0 0 82px #be185d,
+                0 0 92px #be185d,
+                0 0 102px #be185d,
+                0 0 151px #be185d;
+        }
+
+        /* Animasi keyframes untuk efek kelap-kelip */
+        @keyframes flicker-pink {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                    0 0 4px #ec4899,
+                    0 0 11px #ec4899,
+                    0 0 19px #ec4899,
+                    0 0 40px #be185d,
+                    0 0 80px #be185d,
+                    0 0 90px #be185d,
+                    0 0 100px #be185d,
+                    0 0 150px #be185d;
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-black text-pink-400">
+    <!-- Kanvas untuk animasi hujan matrix -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- Konten utama di tengah halaman -->
+    <div class="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <div class="relative z-10">
+            <!-- Ikon maintenance -->
+            <svg class="w-24 h-24 mx-auto mb-6 text-pink-500 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            
+            <!-- Judul utama dengan efek neon -->
+            <h1 class="text-4xl md:text-6xl font-bold text-white neon-text-pink mb-4">
+                MAINTENANCE
+            </h1>
+            
+            <!-- Subjudul -->
+            <p class="text-lg md:text-2xl text-pink-300 mb-2">
+                Situs Kami Sedang dalam Pembaruan
+            </p>
+            
+            <!-- Deskripsi -->
+            <p class="text-md md:text-lg max-w-2xl mx-auto text-pink-400">
+                Kami sedang bekerja keras untuk memberikan Anda pengalaman yang lebih baik. Kami akan segera kembali online!
+            </p>
+
+            <!-- Footer Logo -->
+            <div class="mt-12">
+                <img src="https://cdn.sportjaya.me/img/sdrt_gif.gif" alt="Logo SDRT" class="w-32 h-auto mx-auto opacity-75">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mencegah klik kanan
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Mencegah shortcut keyboard untuk inspect element
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) { // F12
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) { // Ctrl+Shift+I or Ctrl+Shift+J
+                return false;
+            }
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U (View Source)
+                // Ganti konten body dengan gambar
+                document.body.innerHTML = `<img src="https://cdn.sportjaya.me/img/img_e5f1ec9d3ff3ac25.jpg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;">`;
+                // Cegah aksi default browser
+                return false;
+            }
+        };
+
+        // Mengambil elemen kanvas
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Karakter yang akan digunakan dalam animasi hujan
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()_+[]{}|;:,.<>?';
+        const fontSize = 16;
+
+        let columns;
+        let drops;
+
+        // Fungsi untuk menginisialisasi atau mengatur ulang animasi matrix
+        function setupMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            columns = Math.floor(canvas.width / fontSize);
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                // Beri posisi acak di awal agar tidak seragam
+                drops[i] = 1 + Math.floor(Math.random() * (canvas.height / fontSize));
+            }
+        }
+
+        // Panggil fungsi setup saat pertama kali memuat
+        setupMatrix();
+
+        // Fungsi untuk menggambar animasi
+        function draw() {
+            // Memberi lapisan semi-transparan hitam untuk menciptakan efek jejak
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Mengatur warna dan font untuk huruf yang jatuh
+            ctx.fillStyle = '#ec4899'; // Warna pink (Tailwind pink-500)
+            ctx.font = `${fontSize}px Share Tech Mono, monospace`;
+
+            // Loop melalui setiap kolom
+            for (let i = 0; i < drops.length; i++) {
+                // Memilih karakter acak
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                
+                // Menggambar karakter di posisi x dan y
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // Mengatur ulang posisi drop ke atas jika sudah mencapai bagian bawah
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Memindahkan drop ke bawah
+                drops[i]++;
+            }
+        }
+
+        // Menjalankan fungsi draw secara berulang untuk menciptakan animasi
+        const matrixInterval = setInterval(draw, 33);
+
+        // Menyesuaikan ukuran kanvas jika ukuran jendela berubah
+        window.addEventListener('resize', () => {
+            // Panggil fungsi setup lagi untuk mengatur ulang kanvas dan kolom
+            if(document.getElementById('matrix-canvas')) {
+                setupMatrix();
+            }
+        });
+    </script>
+</body>
+</html>
+
